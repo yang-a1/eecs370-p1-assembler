@@ -62,6 +62,43 @@ main(int argc, char **argv)
         exit(1);
     }
 
+    struct labelStorage
+    {
+        char label[7];
+        int address;
+    };
+
+    struct labelStorage labelsList[1000];
+    int PC = 0;
+    int index = 0;
+
+    while (readAndParse(inFilePtr, label, opcode, arg0, arg1, arg2))
+    {
+        if (label[0] != '\0')
+        {
+            for (int i = 0; i < index; i++)
+            {
+                if (strcmp(label, labelsList[i].label) == 0)
+                {
+                    exit(1);
+                }
+            }
+           
+            strcpy(labelsList[index].label, label);
+            labelsList[index].address = PC;
+            index++;
+        }
+
+        PC++;
+    }
+
+    PC = 0;
+    while(readAndParse(inFilePtr, label, opcode, arg0, arg1, arg2))
+    {
+        char address[8];
+        
+    }
+
     /* here is an example for how to use readAndParse to read a line from
         inFilePtr */
     if (! readAndParse(inFilePtr, label, opcode, arg0, arg1, arg2) ) {
