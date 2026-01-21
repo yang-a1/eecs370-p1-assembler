@@ -1,0 +1,19 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "(gdb) Debug assembler",
+      "type": "cppdbg",
+      "request": "launch",
+      "program": "${workspaceFolder}/assembler",
+      "args": [
+        "${workspaceFolder}/spec.as",
+        "${workspaceFolder}/spec.debug.mc"
+      ],
+      "cwd": "${workspaceFolder}",
+      "MIMode": "gdb",
+      "stopAtEntry": false,
+      "externalConsole": false
+    }
+  ]
+}
