@@ -129,6 +129,7 @@ main(int argc, char **argv)
                 (reg2Val < 0 || reg2Val > 7) ||
                 (destination < 0 || destination > 7)) exit(1);
             
+            mc = (opcodeVal << 22) | (reg1Val << 19) | (reg2Val << 16) | (destination & 0x7);
         }
         else if (strcmp("nor", opcode) == 0)
         {
@@ -143,7 +144,8 @@ main(int argc, char **argv)
             if ((reg1Val < 0 || reg1Val > 7) ||
                 (reg2Val < 0 || reg2Val > 7) ||
                 (destination < 0 || destination > 7)) exit(1);
-
+            
+            mc = (opcodeVal << 22) | (reg1Val << 19) | (reg2Val << 16) | (destination & 0x7);
         }
         else if (strcmp("lw", opcode) == 0)
         {
@@ -160,7 +162,8 @@ main(int argc, char **argv)
             if ((reg1Val < 0 || reg1Val > 7) ||
                 (reg2Val < 0 || reg2Val > 7) ||
                 (offsetField < -32768 || offsetField > 32767)) exit(1);
-
+            
+            mc = (opcodeVal << 22) | (reg1Val << 19) | (reg2Val << 16) | (offsetField & 0xFFFF);
         }
         else if (strcmp("sw", opcode) == 0)
         {
@@ -178,6 +181,7 @@ main(int argc, char **argv)
                 (reg2Val < 0 || reg2Val > 7) ||
                 (offsetField < -32768 || offsetField > 32767)) exit(1);
             
+            mc = (opcodeVal << 22) | (reg1Val << 19) | (reg2Val << 16) | (offsetField & 0xFFFF);
         }
         else if (strcmp("beq", opcode) == 0)
         {
@@ -198,6 +202,7 @@ main(int argc, char **argv)
                 (reg2Val < 0 || reg2Val > 7) ||
                 (offsetField < -32768 || offsetField > 32767)) exit(1);
             
+            mc = (opcodeVal << 22) | (reg1Val << 19) | (reg2Val << 16) | (offsetField & 0xFFFF);
         }
         else if (strcmp("jalr", opcode) == 0)
         {
@@ -208,22 +213,37 @@ main(int argc, char **argv)
             reg2Val = atoi(arg1);   
             if ((reg1Val < 0 || reg1Val > 7) ||
                 (reg2Val < 0 || reg2Val > 7)) exit(1);
+            
+            mc = (opcodeVal << 22) | (reg1Val << 19) | (reg2Val << 16);
         }
         else if (strcmp("halt", opcode) == 0)
         {
             opcodeVal = 6;
+            mc = (opcodeVal << 22);
         }
         else if (strcmp("noop", opcode) == 0)
         {
             opcodeVal = 7;
+            mc = (opcodeVal << 22);
+        }
+        else if (!strcmp(opcode, ".fill")) 
+        {
+            if (isNumber(arg0)) mc = atoi(arg0);
+            else 
+            {
+                int defLoc = findLabel(arg0, labelsList, index);
+                if (defLoc == -1) exit(1);
+                mc = defLoc;
+            }
+        }
+        else 
+        {
+            exit(1);
         }
 
         PC++;
+        printHexToFile(outFilePtr, mc);
     }
-
-    /* here is an example of using printHexToFile. This will print a
-       machine code word / number in the proper hex format to the output file */
-    printHexToFile(outFilePtr, 123);
 
 }
 
