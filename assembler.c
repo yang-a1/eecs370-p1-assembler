@@ -112,7 +112,7 @@ main(int argc, char **argv)
         int opcodeVal = 0;
         int reg1Val = 0;
         int reg2Val = 0;
-        int offsetVal = 0;
+        int offsetField = 0;
         int destination = 0;
 
         if (strcmp("add", opcode) == 0)
@@ -128,6 +128,7 @@ main(int argc, char **argv)
             if ((reg1Val < 0 || reg1Val > 7) ||
                 (reg2Val < 0 || reg2Val > 7) ||
                 (destination < 0 || destination > 7)) exit(1);
+            
         }
         else if (strcmp("nor", opcode) == 0)
         {
@@ -142,6 +143,7 @@ main(int argc, char **argv)
             if ((reg1Val < 0 || reg1Val > 7) ||
                 (reg2Val < 0 || reg2Val > 7) ||
                 (destination < 0 || destination > 7)) exit(1);
+
         }
         else if (strcmp("lw", opcode) == 0)
         {
@@ -150,7 +152,6 @@ main(int argc, char **argv)
             opcodeVal = 2;
             reg1Val = atoi(arg0);
             reg2Val = atoi(arg1);
-            int offsetField = 0;
             if(isNumber(arg2)) offsetField = atoi(arg2);
             else offsetField = findLabel(arg2, labelsList, index);
 
@@ -159,6 +160,7 @@ main(int argc, char **argv)
             if ((reg1Val < 0 || reg1Val > 7) ||
                 (reg2Val < 0 || reg2Val > 7) ||
                 (offsetField < -32768 || offsetField > 32767)) exit(1);
+
         }
         else if (strcmp("sw", opcode) == 0)
         {
@@ -167,7 +169,6 @@ main(int argc, char **argv)
             opcodeVal = 3;
             reg1Val = atoi(arg0);
             reg2Val = atoi(arg1);
-            int offsetField = 0;
             if(isNumber(arg2)) offsetField = atoi(arg2);
             else offsetField = findLabel(arg2, labelsList, index);
 
@@ -176,14 +177,37 @@ main(int argc, char **argv)
             if ((reg1Val < 0 || reg1Val > 7) ||
                 (reg2Val < 0 || reg2Val > 7) ||
                 (offsetField < -32768 || offsetField > 32767)) exit(1);
+            
         }
         else if (strcmp("beq", opcode) == 0)
         {
+            if (!isNumber(arg0) || !isNumber(arg1)) exit(1);
+
             opcodeVal = 4;
+            reg1Val = atoi(arg0);
+            reg2Val = atoi(arg1);
+            if(isNumber(arg2)) offsetField = atoi(arg2);
+            else
+            {
+                int defLoc = findLabel(arg2, labelsList, index);
+                if (defLoc == -1) exit(1);
+                offsetField = defLoc - (PC + 1);
+            } 
+
+            if ((reg1Val < 0 || reg1Val > 7) ||
+                (reg2Val < 0 || reg2Val > 7) ||
+                (offsetField < -32768 || offsetField > 32767)) exit(1);
+            
         }
         else if (strcmp("jalr", opcode) == 0)
         {
+            if (!isNumber(arg0) || !isNumber(arg1)) exit(1);
+
             opcodeVal = 5;
+            reg1Val = atoi(arg0);
+            reg2Val = atoi(arg1);   
+            if ((reg1Val < 0 || reg1Val > 7) ||
+                (reg2Val < 0 || reg2Val > 7)) exit(1);
         }
         else if (strcmp("halt", opcode) == 0)
         {
@@ -194,35 +218,13 @@ main(int argc, char **argv)
             opcodeVal = 7;
         }
 
-    }
-
-    /* here is an example for how to use readAndParse to read a line from
-        inFilePtr */
-    if (! readAndParse(inFilePtr, label, opcode, arg0, arg1, arg2) ) {
-        /* reached end of file */
-    }
-
-    /* this is how to rewind the file ptr so that you start reading from the
-        beginning of the file */
-    rewind(inFilePtr);
-
-    /* after doing a readAndParse, you may want to do the following to test the
-        opcode */
-    if (!strcmp(opcode, "add")) {
-        /* do whatever you need to do for opcode "add" */
-    }
-
-    /* here is an example of using isNumber. "5" is a number, so this will
-       return true */
-    if(isNumber("5")) {
-        printf("It's a number\n");
+        PC++;
     }
 
     /* here is an example of using printHexToFile. This will print a
        machine code word / number in the proper hex format to the output file */
     printHexToFile(outFilePtr, 123);
 
-    return(0);
 }
 
 // Returns non-zero if the line contains only whitespace.
