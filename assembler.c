@@ -18,6 +18,22 @@ static inline int isNumber(char *);
 static inline void printHexToFile(FILE *, int);
 static int endsWith(char *, char *);
 
+struct labelStorage
+{
+    char label[7];
+    int address;
+};
+
+int findLabel(const char* instr, struct labelStorage labelsList[], int index) 
+{
+    for (int i = 0; i < index; i++)
+    {
+        if (strcmp(labelsList[i].label, instr) == 0) return labelsList[i].address;
+    }
+
+    return -1;
+}
+
 int
 main(int argc, char **argv)
 {
@@ -62,12 +78,6 @@ main(int argc, char **argv)
         exit(1);
     }
 
-    struct labelStorage
-    {
-        char label[7];
-        int address;
-    };
-
     struct labelStorage labelsList[1000];
     int PC = 0;
     int index = 0;
@@ -92,11 +102,98 @@ main(int argc, char **argv)
         PC++;
     }
 
+    
+    rewind(inFilePtr);
     PC = 0;
+
     while(readAndParse(inFilePtr, label, opcode, arg0, arg1, arg2))
     {
-        char address[8];
-        
+        int mc = 0;
+        int opcodeVal = 0;
+        int reg1Val = 0;
+        int reg2Val = 0;
+        int offsetVal = 0;
+        int destination = 0;
+
+        if (strcmp("add", opcode) == 0)
+        {
+            if (!isNumber(arg0) || !isNumber(arg1) || 
+                !isNumber(arg2)) exit(1);
+
+            opcodeVal = 0;
+            reg1Val = atoi(arg0);
+            reg2Val = atoi(arg1);
+            destination = atoi(arg2);
+
+            if ((reg1Val < 0 || reg1Val > 7) ||
+                (reg2Val < 0 || reg2Val > 7) ||
+                (destination < 0 || destination > 7)) exit(1);
+        }
+        else if (strcmp("nor", opcode) == 0)
+        {
+            if (!isNumber(arg0) || !isNumber(arg1) || 
+                !isNumber(arg2)) exit(1);
+
+            opcodeVal = 1;
+            reg1Val = atoi(arg0);
+            reg2Val = atoi(arg1);
+            destination = atoi(arg2);
+
+            if ((reg1Val < 0 || reg1Val > 7) ||
+                (reg2Val < 0 || reg2Val > 7) ||
+                (destination < 0 || destination > 7)) exit(1);
+        }
+        else if (strcmp("lw", opcode) == 0)
+        {
+            if (!isNumber(arg0) || !isNumber(arg1)) exit(1);
+
+            opcodeVal = 2;
+            reg1Val = atoi(arg0);
+            reg2Val = atoi(arg1);
+            int offsetField = 0;
+            if(isNumber(arg2)) offsetField = atoi(arg2);
+            else offsetField = findLabel(arg2, labelsList, index);
+
+            if (!isNumber(arg2) && offsetField == -1) exit(1);
+
+            if ((reg1Val < 0 || reg1Val > 7) ||
+                (reg2Val < 0 || reg2Val > 7) ||
+                (offsetField < -32768 || offsetField > 32767)) exit(1);
+        }
+        else if (strcmp("sw", opcode) == 0)
+        {
+            if (!isNumber(arg0) || !isNumber(arg1)) exit(1);
+
+            opcodeVal = 3;
+            reg1Val = atoi(arg0);
+            reg2Val = atoi(arg1);
+            int offsetField = 0;
+            if(isNumber(arg2)) offsetField = atoi(arg2);
+            else offsetField = findLabel(arg2, labelsList, index);
+
+            if (!isNumber(arg2) && offsetField == -1) exit(1);
+
+            if ((reg1Val < 0 || reg1Val > 7) ||
+                (reg2Val < 0 || reg2Val > 7) ||
+                (offsetField < -32768 || offsetField > 32767)) exit(1);
+        }
+        else if (strcmp("beq", opcode) == 0)
+        {
+            opcodeVal = 4;
+        }
+        else if (strcmp("jalr", opcode) == 0)
+        {
+            opcodeVal = 5;
+        }
+        else if (strcmp("halt", opcode) == 0)
+        {
+            opcodeVal = 6;
+        }
+        else if (strcmp("noop", opcode) == 0)
+        {
+            opcodeVal = 7;
+        }
+
     }
 
     /* here is an example for how to use readAndParse to read a line from
