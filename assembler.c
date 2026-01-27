@@ -245,6 +245,7 @@ main(int argc, char **argv)
         printHexToFile(outFilePtr, mc);
     }
 
+    exit(0);
 }
 
 // Returns non-zero if the line contains only whitespace.
